@@ -1,10 +1,13 @@
 /*
-  NIMAN SUB ROV 
+ NIMAN SUB ROV 
 
-*/
+ NimanRov is a project to build a Remotely Operated underwater Vehicle.
+ This is the code which will run on the arduino board in the ROV itself.
 
-/*
 
+ Acknowledgements:
+
+ Based on Ethernet WebServer Example: https://www.arduino.cc/en/Tutorial/WebServer
  Parsing of GET requests: based on http://arduino.stackexchange.com/questions/13388/arduino-webserver-faster-alternative-to-indexof-for-parsing-get-requests
  and http://arduino.stackexchange.com/questions/1013/how-do-i-split-an-incoming-string
 
@@ -33,11 +36,21 @@ EthernetServer server(80);
 
 
 // Motor specific parametros
-const int LEFTMOTOR=0;
-const int RIGHTMOTOR=1;
+const int HLEFTMOTOR=0;
+const int HRIGHTMOTOR=1;
+const int VLEFTMOTOR=2;
+const int VRIGHTMOTOR=3;
 
-int motorPins[] = { 3, 5 };
-char* motorNames[]= { "left", "right" };
+int motorPins[] = { 3, 5, 7, 9 };
+char* motorNames[]= { "hleft", "hright", "vleft", "vright" };
+
+// struct to store directions and power level of a pair of motors
+struct motorParams {
+  int dir1;
+  int power1;
+  int dir2;
+  int power2;
+};
 
 void setup() {
   // Open serial communications and wait for port to open:
@@ -53,6 +66,14 @@ void setup() {
   Serial.println(Ethernet.localIP());
 }
 
+// get ROV status
+String getRovStatus() {
+  String rovStatus = "{ status: OK }";
+
+  return rovStatus;
+}
+
+// set direction and power level of a single motor
 void setMotor(int id, int dir, int power) {
   Serial.print(F("Setting motor "));
   Serial.print(motorNames[id]); 
@@ -62,17 +83,41 @@ void setMotor(int id, int dir, int power) {
   Serial.println(power);
 }
 
+// calculate and set directions and power levels of horizontal motors
 void horizontalMotors(int x, int y) {
   Serial.print(F("horizontalMotors: x="));
   Serial.print(x);
   Serial.print(F(", y="));
   Serial.println(y);
 
-  // calculate directions and power for the horizontal motors
-  int dirLeft=0;
-  int powerLeft=0;
-  int dirRight=0;
-  int powerRight=0;
+  struct motorParams hMotorParams = calcMotorParams(x, y);
+
+  setMotor(HLEFTMOTOR,  hMotorParams.dir1, hMotorParams.power1);
+  setMotor(HRIGHTMOTOR, hMotorParams.dir2, hMotorParams.power2);
+
+}
+
+// calculate and set directions and power levels of vertical motors
+void verticalMotors(int x, int y) {
+  Serial.print(F("verticalMotors: x="));
+  Serial.print(x);
+  Serial.print(F(", y="));
+  Serial.println(y);
+
+  struct motorParams hMotorParams = calcMotorParams(x, y);
+
+  setMotor(VLEFTMOTOR,  hMotorParams.dir1, hMotorParams.power1);
+  setMotor(VRIGHTMOTOR, hMotorParams.dir2, hMotorParams.power2);
+}
+
+// calculate directions and power levels of a pair of motors
+struct motorParams calcMotorParams(int x, int y) {
+  struct motorParams mParams;
+  
+  mParams.dir1=0;
+  mParams.power1=0;
+  mParams.dir2=0;
+  mParams.power2=0;
 
   int threshold=20;
   int maxVal=100;
@@ -84,52 +129,51 @@ void horizontalMotors(int x, int y) {
   
   // forward
   if (x > threshold) {
-    dirLeft=1;
-    dirRight=1;
+    mParams.dir1=1;
+    mParams.dir2=1;
     // fwd right
     if (y > threshold) {
-      powerLeft=x;
-      powerRight=(100-y)*x/100;
+      mParams.power1=x;
+      mParams.power2=(100-y)*x/100;
     } else if (y < 0-threshold) {
-      powerLeft=(100+y)*x/100;
-      powerRight=x;
+      mParams.power1=(100+y)*x/100;
+      mParams.power2=x;
     } else {
-      powerLeft=x;
-      powerRight=x;
+      mParams.power1=x;
+      mParams.power2=x;
     }
   // back
   } else if (x < 0-threshold) {
-    dirLeft=-1;
-    dirRight=-1;
+    mParams.dir1=-1;
+    mParams.dir2=-1;
     if (y > threshold) {
-      powerLeft=-x;
-      powerRight=(100-y)*-x/100;
+      mParams.power1=-x;
+      mParams.power2=(100-y)*-x/100;
     } else if (y < 0-threshold) {
-      powerLeft=(100+y)*-x/100;
-      powerRight=-x;
+      mParams.power1=(100+y)*-x/100;
+      mParams.power2=-x;
     } else {
-      powerLeft=-x;
-      powerRight=-x;
+      mParams.power1=-x;
+      mParams.power2=-x;
     }
   // rotate on site
   } else {
     if (y > threshold) {
-      dirLeft=1;
-      dirRight=-1;
-      powerLeft=y;
-      powerRight=y;
+      mParams.dir1=1;
+      mParams.dir2=-1;
+      mParams.power1=y;
+      mParams.power2=y;
     } else if (y < 0-threshold) {
-      dirLeft=-1;
-      dirRight=1;
-      powerLeft=-y;
-      powerRight=-y;
+      mParams.dir1=-1;
+      mParams.dir2=1;
+      mParams.power1=-y;
+      mParams.power2=-y;
     }
   }
-  setMotor(LEFTMOTOR, dirLeft, powerLeft);
-  setMotor(RIGHTMOTOR, dirRight, powerRight);
+  return mParams;
 }
 
-// Example GET line: GET /?foo=bar HTTP/1.1
+// Example GET line: GET /?hx=100&hy=25&vx=0&vy=0 HTTP/1.1
 void processGet (const char * data) {
   //Serial.print(F("Data in processGet: "));
   //Serial.println(data);
@@ -184,18 +228,21 @@ void processGet (const char * data) {
         Serial.println(value);
         
         // Do something with key and value
+
+        // coordinates receveived from the joystick
         if (strcmp(key,"hx")==0) { hx = atoi(value); }
         if (strcmp(key,"hy")==0) { hy = atoi(value); }
+        if (strcmp(key,"vx")==0) { vx = atoi(value); }
         if (strcmp(key,"vy")==0) { vy = atoi(value); }
-        if (strcmp(key,"vy")==0) { vy = atoi(value); }
-
     }
     // Find the next command in input string
     command = strtok(0, "&");
   }
 
+  // send coordinates to motors
   horizontalMotors(hx, hy);
-//  verticalMotors(vx, hx);
+  verticalMotors(vx, vy);
+  
 }  // end of processGet
 
 // here to process incoming serial data after a terminator received
@@ -239,6 +286,8 @@ bool processIncomingByte (const byte inByte) {
 void loop() {
   // listen for incoming clients
   EthernetClient client = server.available();
+
+  // we get a request
   if (client) {
     Serial.println(F("Client connected"));
     // an http request ends with a blank line
@@ -249,12 +298,16 @@ void loop() {
       }
     }  // end of while client connected
 
+    // get ROV status values as json string
+    String rovStatus = getRovStatus();
+    
     // send a standard http response header
     client.println(F("HTTP/1.1 200 OK"));
     client.println(F("Content-Type: text/json"));
     client.println(F("Connection: close"));  // close after completion of the response
     client.println();   // end of HTTP header
-    client.println(F("{ foo: bar }"));
+    client.println(rovStatus);
+//    client.println(F("{ foo: bar }"));
 
     // give the web browser time to receive the data
     delay(10);
