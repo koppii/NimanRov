@@ -41,11 +41,25 @@ const int HRIGHTMOTOR=1;
 const int VLEFTMOTOR=2;
 const int VRIGHTMOTOR=3;
 
-int motorPins[] = { 3, 5, 7, 9 };
-char* motorNames[]= { "hleft", "hright", "vleft", "vright" };
+// structure to store parameters for each motor
+// input pins of L293 and name
+struct motorParams {
+  int pinIn1;
+  int pinIn2;
+  int enablePin;
+  char name[10];
+};
+
+// Configuration of the 4 motors
+struct motorParams motorParamsData[4] = {
+  {  2,  3,  4, "hleft" },
+  {  5,  6,  7, "hright" },
+  {  8,  9, 10, "vleft" },
+  { 11, 12, 13, "vright" }
+};
 
 // struct to store directions and power level of a pair of motors
-struct motorParams {
+struct motorPairParams {
   int dir1;
   int power1;
   int dir2;
@@ -76,7 +90,7 @@ String getRovStatus() {
 // set direction and power level of a single motor
 void setMotor(int id, int dir, int power) {
   Serial.print(F("Setting motor "));
-  Serial.print(motorNames[id]); 
+  Serial.print(motorParamsData[id].name); 
   Serial.print(F(" in direction "));
   Serial.print(dir);
   Serial.print(F(" with power "));
@@ -90,7 +104,7 @@ void horizontalMotors(int x, int y) {
   Serial.print(F(", y="));
   Serial.println(y);
 
-  struct motorParams hMotorParams = calcMotorParams(x, y);
+  struct motorPairParams hMotorParams = calcMotorParams(x, y);
 
   setMotor(HLEFTMOTOR,  hMotorParams.dir1, hMotorParams.power1);
   setMotor(HRIGHTMOTOR, hMotorParams.dir2, hMotorParams.power2);
@@ -104,15 +118,15 @@ void verticalMotors(int x, int y) {
   Serial.print(F(", y="));
   Serial.println(y);
 
-  struct motorParams hMotorParams = calcMotorParams(x, y);
+  struct motorPairParams vMotorParams = calcMotorParams(x, y);
 
-  setMotor(VLEFTMOTOR,  hMotorParams.dir1, hMotorParams.power1);
-  setMotor(VRIGHTMOTOR, hMotorParams.dir2, hMotorParams.power2);
+  setMotor(VLEFTMOTOR,  vMotorParams.dir1, vMotorParams.power1);
+  setMotor(VRIGHTMOTOR, vMotorParams.dir2, vMotorParams.power2);
 }
 
 // calculate directions and power levels of a pair of motors
-struct motorParams calcMotorParams(int x, int y) {
-  struct motorParams mParams;
+struct motorPairParams calcMotorParams(int x, int y) {
+  struct motorPairParams mParams;
   
   mParams.dir1=0;
   mParams.power1=0;
