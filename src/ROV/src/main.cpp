@@ -17,7 +17,7 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
-#include "motors.h"
+#include "Motors.h"
 
 
 // how much serial data we expect before a newline

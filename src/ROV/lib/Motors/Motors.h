@@ -16,8 +16,6 @@ struct motorParams {
   char name[10];
 };
 
-
-
 // struct to store directions and power level of a pair of motors
 struct motorPairParams {
   int dir1;
@@ -25,7 +23,6 @@ struct motorPairParams {
   int dir2;
   int power2;
 };
-
 
 // set direction and power level of a single motor
 void setMotor();
