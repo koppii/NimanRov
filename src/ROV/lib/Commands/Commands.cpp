@@ -9,7 +9,7 @@ int vx = 0;
 int vy = 0;
 
 void processCommand(char* key, char* value) {
-  Serial.println("processing command ...");
+  //Serial.println("processing command ...");
 
   // save coordinates receveived from the joystick
   // they are processed later together

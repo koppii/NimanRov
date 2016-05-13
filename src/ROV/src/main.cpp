@@ -46,6 +46,10 @@ void setup() {
   server.begin();
   Serial.print(F("server is at "));
   Serial.println(Ethernet.localIP());
+
+  // setup Motors
+  setupMotors();
+
 }
 
 // get ROV status

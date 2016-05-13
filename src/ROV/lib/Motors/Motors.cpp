@@ -10,6 +10,11 @@ struct motorParams motorParamsData[4] = {
   { 11, 12, 13, "vright" }
 };
 
+void setupMotors() {
+  Serial.println(F("Setting up motors ..."));
+  // TODO: for loop over all motors ...
+
+}
 
 // set direction and power level of a single motor
 void setMotor(int id, int dir, int power) {
@@ -57,7 +62,7 @@ struct motorPairParams calcMotorParams(int x, int y) {
   mParams.dir2=0;
   mParams.power2=0;
 
-  int threshold=20;
+  int threshold=5;
   int maxVal=100;
   int minVal=-100;
   if (x > maxVal) { x = maxVal; }
@@ -66,46 +71,49 @@ struct motorPairParams calcMotorParams(int x, int y) {
   if (y < minVal) { y = minVal; }
 
   // forward
-  if (x > threshold) {
+  if (y > threshold) {
     mParams.dir1=1;
     mParams.dir2=1;
     // fwd right
-    if (y > threshold) {
-      mParams.power1=x;
-      mParams.power2=(100-y)*x/100;
-    } else if (y < 0-threshold) {
-      mParams.power1=(100+y)*x/100;
-      mParams.power2=x;
+    if (x > threshold) {
+      mParams.power1=y;
+      mParams.power2=(100-x)*y/100;
+    // fwd left
+    } else if (x < 0-threshold) {
+      mParams.power1=(100+x)*y/100;
+      mParams.power2=y;
+    // fwd straight
     } else {
-      mParams.power1=x;
-      mParams.power2=x;
+      mParams.power1=y;
+      mParams.power2=y;
     }
-  // back
-  } else if (x < 0-threshold) {
+// back
+} else if (y < 0-threshold) {
     mParams.dir1=-1;
     mParams.dir2=-1;
-    if (y > threshold) {
-      mParams.power1=-x;
-      mParams.power2=(100-y)*-x/100;
-    } else if (y < 0-threshold) {
-      mParams.power1=(100+y)*-x/100;
-      mParams.power2=-x;
+    // back right
+    if (x > threshold) {
+      mParams.power1=-y;
+      mParams.power2=(100-x)*-y/100;
+    } else if (x < 0-threshold) {
+      mParams.power1=(100+x)*-y/100;
+      mParams.power2=-y;
     } else {
-      mParams.power1=-x;
-      mParams.power2=-x;
+      mParams.power1=-y;
+      mParams.power2=-y;
     }
   // rotate on site
   } else {
-    if (y > threshold) {
+    if (x > threshold) {
       mParams.dir1=1;
       mParams.dir2=-1;
-      mParams.power1=y;
-      mParams.power2=y;
-    } else if (y < 0-threshold) {
+      mParams.power1=x;
+      mParams.power2=x;
+    } else if (x < 0-threshold) {
       mParams.dir1=-1;
       mParams.dir2=1;
-      mParams.power1=-y;
-      mParams.power2=-y;
+      mParams.power1=-x;
+      mParams.power2=-x;
     }
   }
   return mParams;

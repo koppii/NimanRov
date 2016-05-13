@@ -24,6 +24,9 @@ struct motorPairParams {
   int power2;
 };
 
+// setup Motors, set pins to input/output mode, etc.
+void setupMotors();
+
 // set direction and power level of a single motor
 void setMotor();
 
