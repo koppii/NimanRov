@@ -177,10 +177,12 @@ void JoystickShield::processEvents() {
     // read from Joystick pins
     x_position = analogRead(pin_analog_x);
     y_position = analogRead(pin_analog_y);
-    //Serial.print("x_position: ");
-    //Serial.print(x_position);
-    //Serial.print(", y_position: ");
-    //Serial.println(y_position);
+    /*
+    Serial.print("x_position: ");
+    Serial.print(x_position);
+    Serial.print(", y_position: ");
+    Serial.println(y_position);
+    */
 
     // determine Joystick direction
     if (x_position > x_threshold_high) {
@@ -197,7 +199,7 @@ void JoystickShield::processEvents() {
 
     if (y_position > y_threshold_high) {
         y_direction = 1;
-//		y_position = map(y_position, y_threshold_high,y_threshold_high+y_threshold_low,0,100);
+		//y_position = map(y_position, y_threshold_high,y_threshold_high+y_threshold_low,0,100);
     y_position = map(y_position, y_threshold_high,MAXANALOGVALUE,0,100);
 		y_position = constrain(y_position,0,100);
     } else if (y_position < y_threshold_low) {

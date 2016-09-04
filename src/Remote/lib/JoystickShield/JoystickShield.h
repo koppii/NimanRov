@@ -29,7 +29,10 @@
 
 #define CENTERTOLERANCE 5
 
-#define MAXANALOGVALUE 702
+// center of joystick is around 600/600, but max value is only 1024
+// therefore we limit the upper range to 1024, otherwise
+// we get normalized (map) values of only around +70
+#define MAXANALOGVALUE 1024
 
 // Compatibility for Arduino 1.0
 

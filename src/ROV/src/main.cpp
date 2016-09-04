@@ -20,6 +20,7 @@
 #include "UrlParser.h"
 #include "Motors.h"
 #include "Commands.h"
+#include <Servo.h>
 
 
 // Enter a MAC address and IP address for your controller below.
