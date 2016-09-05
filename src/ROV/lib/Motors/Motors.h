@@ -1,6 +1,8 @@
 #ifndef _MOTORS_
 #define _MOTORS_
 
+bool DEBUG = true;
+
 // Motor specific parametros
 const int HLEFTMOTOR=0;
 const int HRIGHTMOTOR=1;
@@ -11,7 +13,7 @@ const int MOTORSTARTUS=1060;
 const int MOTORENDUS=1860;
 //const int MOTORRANGE=(MOTORENDUS-MOTORSTARTUS)/2;
 const int MOTORSTOP=MOTORSTARTUS+((MOTORENDUS-MOTORSTARTUS)/2);
-const int MAXGEAR=5;
+const int MAXGEAR=4;
 
 // structure to store parameters for each motor
 // input pins of L293 and name

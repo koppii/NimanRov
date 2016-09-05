@@ -53,8 +53,9 @@ int totalVY = 0;
 int lastVY = 0;
 
 // min delay between shifting gears up / down
-const unsigned long gearShiftMinDelay = 3L * 1000L; // min delay between updates, in milliseconds
-unsigned long lastGearShift = 0;
+const unsigned long gearShiftMinDelay = 1L * 1000L; // min delay between updates, in milliseconds
+unsigned long lastGearShiftDown = 0;
+unsigned long lastGearShiftUp = 0;
 
 bool DEBUG = true;
 
@@ -163,16 +164,21 @@ void loop() {
   }
 
   // Shift gear up or down
-  if (millis() - lastGearShift > gearShiftMinDelay) {
-    if (joystickShield.isEButton()) {
-      Serial.println("E Button Clicked, shift gear up");
+  if (joystickShield.isEButton()) {
+    if (millis() - lastGearShiftUp > gearShiftMinDelay) {
+      if (DEBUG) {
+        Serial.print(F("E Button Clicked, shift gear up"));
+        Serial.println(millis());
+      }
       hgear = 1;
-      lastGearShift = millis();
+      lastGearShiftUp = millis();
     }
-    if (joystickShield.isFButton()) {
+  }
+  if (joystickShield.isFButton()) {
+    if (millis() - lastGearShiftDown > gearShiftMinDelay) {
       Serial.println("F Button Clicked, shift gear down") ;
       hgear = -1;
-      lastGearShift = millis();
+      lastGearShiftDown = millis();
     }
   }
 
@@ -183,7 +189,7 @@ void loop() {
     lastHGear=hgear;
   } else {
     if (DEBUG) {
-      Serial.println("Coordinates did not change");
+      //Serial.println("Coordinates did not change");
     }
   }
   delay(50);

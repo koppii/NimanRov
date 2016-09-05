@@ -17,8 +17,9 @@ struct motorPairParams vMotorParams;
 Servo motors[4];
 
 void setupMotors() {
-  Serial.println(F("Setting up motors ..."));
-  // TODO: for loop over all motors ...
+  if (DEBUG) {
+    Serial.println(F("Setting up motors ..."));
+  }
   for (int i = 0; i < 4; i = i+1) {
     motors[i].attach(motorParamsData[i].pin);
     setMotor(i, 0, 0, 1);
@@ -27,15 +28,16 @@ void setupMotors() {
 
 // set direction and power level of a single motor
 void setMotor(int id, int dir, int power, int gear) {
-  Serial.print(F("Setting motor "));
-  Serial.print(motorParamsData[id].name);
-  Serial.print(F(" in direction "));
-  Serial.print(dir);
-  Serial.print(F(" with power "));
-  Serial.println(power);
-  Serial.print(F(" with gear "));
-  Serial.println(gear);
-
+  if (DEBUG) {
+    Serial.print(F("Setting motor "));
+    Serial.print(motorParamsData[id].name);
+    Serial.print(F(": direction: "));
+    Serial.print(dir);
+    Serial.print(F(", power: "));
+    Serial.print(power);
+    Serial.print(F(", gear: "));
+    Serial.print(gear);
+  }
 
   int us = MOTORSTOP;
   // we change the direction, so stop the motor first
@@ -47,25 +49,32 @@ void setMotor(int id, int dir, int power, int gear) {
   }
   */
   int range = (MOTORENDUS-MOTORSTOP)/MAXGEAR*gear;
-  if (dir == 1) {
-    us = MOTORSTOP+(range*power/100);
-  } else if (dir == -1) {
-    us = MOTORSTOP-(range*power/100);
+  if (DEBUG) {
+    Serial.print(F(", range: "));
+    Serial.print(range);
   }
-  Serial.print(F("writeMicroseconds: "));
-  Serial.println(us);
+  if (dir == 1) {
+    us = MOTORSTOP+(range/100*power);
+  } else if (dir == -1) {
+    us = MOTORSTOP-(range/100*power);
+  }
+  if (DEBUG) {
+    Serial.print(F(", writeMicroseconds: "));
+    Serial.println(us);
+  }
   motors[id].writeMicroseconds(us);
 }
 
 // calculate and set directions and power levels of horizontal motors
 void horizontalMotors(int x, int y, int gear) {
+  /*
   Serial.print(F("horizontalMotors: x="));
   Serial.print(x);
   Serial.print(F(", y="));
-  Serial.println(y);
+  Serial.print(y);
   Serial.print(F(", gear="));
   Serial.println(gear);
-
+  */
   hMotorParams = calcMotorParams(hMotorParams, x, y, gear);
 
   setMotor(HLEFTMOTOR,  hMotorParams.dir1, hMotorParams.power1, hMotorParams.gear);
@@ -75,12 +84,14 @@ void horizontalMotors(int x, int y, int gear) {
 
 // calculate and set directions and power levels of vertical motors
 void verticalMotors(int x, int y, int gear) {
+  /*
   Serial.print(F("verticalMotors: x="));
   Serial.print(x);
   Serial.print(F(", y="));
-  Serial.println(y);
+  Serial.print(y);
   Serial.print(F(", gear="));
   Serial.println(gear);
+  */
 
   vMotorParams = calcMotorParams(vMotorParams, x, y, gear);
 
